@@ -17,26 +17,7 @@ class DbOperations
 
     /* CRUD  -> C -> CREATE */
 
-    // user creation by admin
-    public function createUser($full_name, $username, $email, $contact, $pass, $user_type)
-    {
-        $password = md5($pass); // password encrypting
-        if ($this->isUserExist($username, $email)) {
-            // user exists
-            return 0;
-        } else {
-            $stmt = $this->con->prepare("INSERT INTO `users` (`user_id`, `full_name`, `username`, `email`, `contact`, `password`, `user_type`, `user_status`) VALUES (NULL, ?, ?, ?, ?, ?, ?, 'ACTIVE');");
-            $stmt->bind_param("ssssss", $full_name, $username, $email, $contact, $password, $user_type);
-
-            if ($stmt->execute()) {
-                // user created
-                return 1;
-            } else {
-                // some error
-                return 2;
-            }
-        }
-    }
+    
 
     // user registration
     public function registerUser($full_name, $username, $email, $contact, $address, $pass)
@@ -131,35 +112,7 @@ class DbOperations
         }
     }
 
-    // uploading prescription by doctor
-    public function uploadPrescription($doctor_id, $patient_id, $appointment_id, $prescription)
-    {
-        $stmt = $this->con->prepare("INSERT INTO `prescriptions` (`prescription_id`, `doctor_id`, `patient_id`, `appointment_id`, `prescription`, `prescription_status`) VALUES (NULL, ?, ?, ?, ?, 'PENDING');");
-        $stmt->bind_param("iiis", $doctor_id, $patient_id, $appointment_id, $prescription);
-
-        if ($stmt->execute()) {
-            // prescription uploaded
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // uploading lab report by staff
-    public function uploadTheLabReport($lab_test_id, $report_link)
-    {
-        $stmt = $this->con->prepare("INSERT INTO `lab_reports` (`report_id`, `lab_test_id`, `file_location`) VALUES (NULL, ?, ?);");
-        $stmt->bind_param("is", $lab_test_id, $report_link);
-
-        if ($stmt->execute()) {
-            // report uploaded
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
+    
 
     /* CRUD  -> r -> RETRIEVE */
 
@@ -172,14 +125,7 @@ class DbOperations
         return $stmt->get_result()->fetch_assoc();
     }
 
-    // retreiving user data by id
-    public function getUserById($userid)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `id` = ?");
-        $stmt->bind_param("i", $userid);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
+    
 
     // checking if the user exists
     private function isUserExist($username, $email)
@@ -211,13 +157,6 @@ class DbOperations
         return $stmt->num_rows > 0;
     }
 
-    // retrieving users table
-    public function getUsers()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `user_type` != 'ADMIN' AND `user_status` = 'ACTIVE'");
-        $stmt->execute();
-        return $stmt->get_result();
-    }
 
     // retrieving the doctors for patient
     public function getDoctors()
@@ -225,6 +164,16 @@ class DbOperations
         $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `user_type` = 'DOCTOR' AND `user_status` = 'ACTIVE'");
         $stmt->execute();
         return $stmt->get_result();
+    }
+
+    // getting the appointments table to the user
+    public function getAppointments($user_id)
+    {
+        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? ORDER BY `appointment_id` DESC ");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        return $stmt->get_result();
+
     }
 
     // getting the pending appointments table to the user
