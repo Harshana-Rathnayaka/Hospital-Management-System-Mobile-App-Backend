@@ -24,6 +24,17 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
         } else {
             $response['appointmentList'] = [];
         }
+    } elseif ($list_type == 'doctors') {
+        $doctors = $db->getDoctors();
+        $doctorsList = array();
+        if ($doctors->num_rows > 0) {
+            while ($row = $doctors->fetch_assoc()) {
+                $doctorsList[] = $row;
+                $response['doctorsList'] = $doctorsList;
+            }
+        } else {
+            $response['doctorsList'] = [];
+        }
     }
 
 } else {

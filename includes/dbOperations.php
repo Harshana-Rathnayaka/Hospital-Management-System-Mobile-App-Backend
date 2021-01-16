@@ -161,7 +161,7 @@ class DbOperations
     // retrieving the doctors for patient
     public function getDoctors()
     {
-        $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `user_type` = 'DOCTOR' AND `user_status` = 'ACTIVE'");
+        $stmt = $this->con->prepare("SELECT `user_id`, `full_name`, `username` FROM `users` WHERE `user_type` = 'DOCTOR' AND `user_status` = 'ACTIVE'");
         $stmt->execute();
         return $stmt->get_result();
     }
