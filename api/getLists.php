@@ -35,6 +35,17 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
         } else {
             $response['doctorsList'] = [];
         }
+    } elseif ($list_type == 'prescriptions') {
+        $prescriptions = $db->getIncomingPrescriptionsByUser($user_id);
+        $prescriptionList = array();
+        if ($prescriptions->num_rows > 0) {
+            while ($row = $prescriptions->fetch_assoc()) {
+                $prescriptionList[] = $row;
+                $response['prescriptionList'] = $prescriptionList;
+            }
+        } else {
+            $response['prescriptionList'] = [];
+        }
     }
 
 } else {
