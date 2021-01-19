@@ -46,7 +46,18 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
         } else {
             $response['prescriptionList'] = [];
         }
-    }
+    } elseif ($list_type == 'payable') {
+        $payable = $db->getPayableAppointmentsByUser($user_id);
+        $payableList = array();
+        if ($payable->num_rows > 0) {
+            while ($row = $payable->fetch_assoc()) {
+                $payableList[] = $row;
+                $response['payableList'] = $payableList;
+            }
+        } else {
+            $response['payableList'] = [];
+        }
+    } 
 
 } else {
     $response['error'] = true;
