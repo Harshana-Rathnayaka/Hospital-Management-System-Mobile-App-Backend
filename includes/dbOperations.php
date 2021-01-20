@@ -131,26 +131,6 @@ class DbOperations
         return $stmt->num_rows > 0;
     }
 
-    // checking if the email is taken
-    public function isEmailTaken($email)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `email` = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result();
-        return $stmt->num_rows > 0;
-    }
-
-    // checking if the username is taken
-    public function isUsernameTaken($username)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `users` WHERE `username` = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->store_result();
-        return $stmt->num_rows > 0;
-    }
-
     // retrieving the doctors for patient
     public function getDoctors()
     {
@@ -169,16 +149,6 @@ class DbOperations
 
     }
 
-    // getting the pending appointments table to the user
-    public function getPendingAppointmentsByUser($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? AND `appointment_status` = 'PENDING'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
     // getting the payable appointments table to the user
     public function getPayableAppointmentsByUser($user_id)
     {
@@ -189,31 +159,10 @@ class DbOperations
 
     }
 
-    // getting the ongoing appointments table to the user
-    public function getOngoingAppointmentsByUser($user_id)
+    // getting the appointments list for the history
+    public function getAppointmentHistory($user_id)
     {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? AND `appointment_status` = 'PAID'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting the rejected appointments table to the user
-    public function getRejectedAppointmentsByUser($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? AND `appointment_status` = 'REJECTED'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting the completed appointments table to the user
-    public function getCompletedAppointmentsByUser($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` app LEFT JOIN `users` u ON u.user_id = app.doctor_id
-        LEFT JOIN `prescriptions` pres ON pres.appointment_id = app.appointment_id WHERE app.patient_id = ? AND `appointment_status` = 'COMPLETED'");
+        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? AND `appointment_status` = 'REJECTED' || `appointment_status` = 'COMPLETED' || `appointment_status` = 'CANCELLED'");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         return $stmt->get_result();
@@ -240,226 +189,27 @@ class DbOperations
 
     }
 
-    // getting the pending lab tests table to the user
-    public function getPendingLabTestsByUser($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` WHERE `patient_id` = ? AND `test_status` = 'PAID'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
     // getting the ongoing lab tests table to the user
     public function getOngoingLabTestsByUser($user_id)
     {
-        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` WHERE `patient_id` = ? AND `test_status` = 'ACCEPTED'");
+        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` WHERE `patient_id` = ? AND `test_status` = 'PAID' || `test_status` = 'ACCEPTED' ORDER BY `test_id` DESC");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         return $stmt->get_result();
 
     }
 
-    // getting all appointments table to the doctor
-    public function getOngoingAppointmentsByDoctor($user_id)
+    // getting the lab tests for the history
+    public function getLabTestHistory($user_id)
     {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.patient_id WHERE `doctor_id` = ? AND `appointment_status` = 'PAID'");
+        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` WHERE `patient_id` = ? AND `test_status` = 'COMPLETED' || `test_status` = 'CANCELLED'");
         $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting pending appointments table to the doctor
-    public function getPendingAppointmentsByDoctor($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.patient_id WHERE `doctor_id` = ? AND `appointment_status` = 'PENDING'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting rejected appointments table to the doctor
-    public function getRejectedAppointmentsByDoctor($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.patient_id WHERE `doctor_id` = ? AND `appointment_status` = 'REJECTED'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting completed appointments table to the doctor
-    public function getCompletedAppointmentsByDoctor($user_id)
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.patient_id WHERE `doctor_id` = ? AND `appointment_status` = 'COMPLETED'");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting pending prescriptions to the nurse
-    public function getPendingPrescriptions()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `prescriptions` INNER JOIN `users` ON users.user_id = prescriptions.patient_id WHERE `prescription_status` = 'PENDING'");
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting shipped prescriptions to the nurse
-    public function getShippedPrescriptions()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `prescriptions` INNER JOIN `users` ON users.user_id = prescriptions.patient_id WHERE `prescription_status` = 'SHIPPED'");
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting completed prescriptions to the nurse
-    public function getCompletedPrescriptions()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `prescriptions` INNER JOIN `users` ON users.user_id = prescriptions.patient_id WHERE `prescription_status` = 'RECEIVED'");
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting pending lab tests to the staff
-    public function getPendingLabTests()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` INNER JOIN `users` ON users.user_id = lab_tests.patient_id WHERE `test_status` = 'PAID'");
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting ongoing lab tests to the staff
-    public function getOngoingLabTests()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` INNER JOIN `users` ON users.user_id = lab_tests.patient_id WHERE `test_status` = 'ACCEPTED'");
-        $stmt->execute();
-        return $stmt->get_result();
-
-    }
-
-    // getting completed lab tests to the staff
-    public function getCompletedLabTests()
-    {
-        $stmt = $this->con->prepare("SELECT * FROM `lab_tests` INNER JOIN `users` ON users.user_id = lab_tests.patient_id WHERE `test_status` = 'COMPLETED'");
         $stmt->execute();
         return $stmt->get_result();
 
     }
 
     /* CRUD  -> U -> UPDATE */
-
-    // accept an appointment by doctor
-    public function acceptAppointment($appointment_id, $date, $time)
-    {
-        $stmt = $this->con->prepare("UPDATE `appointments` SET `appointment_status` = 'ACCEPTED', `date` = ?, `time` = ? WHERE `appointment_id` = ?");
-        $stmt->bind_param("ssi", $date, $time, $appointment_id);
-
-        if ($stmt->execute()) {
-            // appointment accepted
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // accept a lab test by staff
-    public function acceptLabTest($lab_test_id, $date)
-    {
-        $stmt = $this->con->prepare("UPDATE `lab_tests` SET `test_status` = 'ACCEPTED', `date` = ? WHERE `test_id` = ?");
-        $stmt->bind_param("si", $date, $lab_test_id);
-
-        if ($stmt->execute()) {
-            // lab test accepted
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // reject an appointment by doctor
-    public function rejectAppointment($appointment_id, $comment)
-    {
-        $stmt = $this->con->prepare("UPDATE `appointments` SET `appointment_status` = 'REJECTED', `comments` = ? WHERE `appointment_id` = ?");
-        $stmt->bind_param("si", $comment, $appointment_id);
-
-        if ($stmt->execute()) {
-            // appointment rejected
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // complete an appointment by doctor
-    public function completeAppointment($appointment_id)
-    {
-        $stmt = $this->con->prepare("UPDATE `appointments` SET `appointment_status` = 'COMPLETED' WHERE `appointment_id` = ?");
-        $stmt->bind_param("i", $appointment_id);
-
-        if ($stmt->execute()) {
-            // appointment completed
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // mark lab test as complete by staff
-    public function completeLabReport($lab_test_id)
-    {
-        $stmt = $this->con->prepare("UPDATE `lab_tests` SET `test_status` = 'COMPLETED' WHERE `test_id` = ?");
-        $stmt->bind_param("i", $lab_test_id);
-
-        if ($stmt->execute()) {
-            // lab test completed
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // mark a prescription as shipped
-    public function shipPrescription($prescription_id)
-    {
-        $stmt = $this->con->prepare("UPDATE `prescriptions` SET `prescription_status` = 'SHIPPED', `prescription_location` = 'Dispatched from the Hospital' WHERE `prescription_id` = ?");
-        $stmt->bind_param("i", $prescription_id);
-
-        if ($stmt->execute()) {
-            // prescription shipped
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // update prescription location
-    public function updateLocation($prescription_id, $prescription_location)
-    {
-        $stmt = $this->con->prepare("UPDATE `prescriptions` SET `prescription_location` = ? WHERE `prescription_id` = ?");
-        $stmt->bind_param("si", $prescription_location, $prescription_id);
-
-        if ($stmt->execute()) {
-            // prescription shipped
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
 
     // mark a prescription as received
     public function markAsReceived($prescription_id)
@@ -529,66 +279,6 @@ class DbOperations
 
         if ($stmt->execute()) {
             // appointment cancelled
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // deleting the prescription by changing the status. Not really deleting.
-    public function deletePrescription($prescription_id)
-    {
-        $stmt = $this->con->prepare("UPDATE `prescriptions` SET `prescription_status` = 'COMPLETED' WHERE `prescription_id` = ?");
-        $stmt->bind_param("i", $prescription_id);
-
-        if ($stmt->execute()) {
-            // prescription deleted (status marked as completed)
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // activate or deactivate user account by updating user status from admin side
-    public function updateUserStatus($user_id, $status)
-    {
-        $stmt = $this->con->prepare("UPDATE `users` SET `user_status` = ? WHERE `id` = ?");
-        $stmt->bind_param("ii", $status, $user_id);
-
-        if ($stmt->execute()) {
-            // user account status updated by admin
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // update admin details
-    public function updateAdminAccountDetails($userid, $firstname, $lastname, $username, $email)
-    {
-        $stmt = $this->con->prepare("UPDATE `users` SET `first_name` = ?, `last_name` = ?, `username` = ?, `email` = ? WHERE `id` = ?");
-        $stmt->bind_param("ssssi", $firstname, $lastname, $username, $email, $userid);
-
-        if ($stmt->execute()) {
-            // admin account details updated
-            return 0;
-        } else {
-            // some error
-            return 1;
-        }
-    }
-
-    // update user details
-    public function updateUserAccountDetails($userid, $firstname, $lastname, $birthday, $gender, $username, $email, $contact)
-    {
-        $stmt = $this->con->prepare("UPDATE `users` SET `first_name` = ?, `last_name` = ?, `birthday` = ?, `gender` = ?, `username` = ?, `email` = ?, `contact` = ? WHERE `id` = ?");
-        $stmt->bind_param("sssssssi", $firstname, $lastname, $birthday, $gender, $username, $email, $contact, $userid);
-
-        if ($stmt->execute()) {
-            // user account details updated
             return 0;
         } else {
             // some error

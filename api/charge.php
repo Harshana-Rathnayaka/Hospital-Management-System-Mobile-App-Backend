@@ -57,28 +57,11 @@ if ($payment_for == 'APPOINTMENT') {
     // payment type is LAB_TEST
 
     // getting the values
+    $patient_id = $POST['patient_id'];
     $amount = $POST['amount'];
-    $name_on_card = $POST['name_on_card'];
-    $token = $POST['stripeToken'];
-    $patient_id = $_SESSION['user_id'];
     $details = $POST['details'];
+    $stripe_customer_id = $POST['stripe_customer_id'];
 
-    // create the customer in stripe
-    $customer = \Stripe\Customer::create(array(
-        "name" => $name_on_card,
-        "source" => $token,
-    ));
-
-// charge the customer
-    $charge = \Stripe\Charge::create(array(
-        "amount" => $amount,
-        "currency" => "lkr",
-        "description" => "Payment for the " . $payment_for,
-        "customer" => $customer->id,
-    ));
-
-    // we can operate the data further
-    $stripe_customer_id = $charge->customer;
     $real_amount = substr($amount, 0, 4);
 
     // adding to the payments table in the db
@@ -92,28 +75,22 @@ if ($payment_for == 'APPOINTMENT') {
         if ($result2 == 0) {
 
             // payment was successful and added the lab test request to the db
-            $_SESSION['success'] = "Lab Test request submitted successfully! Payment ID - " . $charge->id;
             $response['error'] = false;
-            $response['message'] = "Lab Test request submitted successfully";
-            header("location:../patient/new-test.php");
+            $response['message'] = "Lab Test request submitted successfully! Payment ID - " . $stripe_customer_id;
 
         } elseif ($result2 == 1) {
 
             // lab test request was not added to the db
-            $_SESSION['error'] = "Something went wrong, lab test request could not be submitted. Please try again!";
             $response['error'] = true;
-            $response['message'] = "Some error occured, please try again";
-            header("location:../patient/new-test.php");
+            $response['message'] = "Something went wrong, lab test request could not be submitted. Please try again later!";
 
         }
 
     } elseif ($result == 1) {
 
         // payment was not successful and could not be added to the stripe dashboard
-        $_SESSION['error'] = "Something went wrong, please try again!";
         $response['error'] = true;
-        $response['message'] = "Some error occured, please try again";
-        header("location:../patient/new-test.php");
+        $response['message'] = "Something went wrong, please try again later!";
 
     }
 

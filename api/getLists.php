@@ -25,6 +25,8 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             $response['appointmentList'] = [];
         }
     } elseif ($list_type == 'doctors') {
+
+        // doctors table
         $doctors = $db->getDoctors();
         $doctorsList = array();
         if ($doctors->num_rows > 0) {
@@ -36,6 +38,8 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             $response['doctorsList'] = [];
         }
     } elseif ($list_type == 'prescriptions') {
+
+        // prescription table
         $prescriptions = $db->getIncomingPrescriptionsByUser($user_id);
         $prescriptionList = array();
         if ($prescriptions->num_rows > 0) {
@@ -47,6 +51,8 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             $response['prescriptionList'] = [];
         }
     } elseif ($list_type == 'payable') {
+
+        // payable appointments
         $payable = $db->getPayableAppointmentsByUser($user_id);
         $payableList = array();
         if ($payable->num_rows > 0) {
@@ -56,6 +62,17 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             }
         } else {
             $response['payableList'] = [];
+        }
+    } elseif ($list_type == 'ongoing_lab_tests') {
+        $lab_tests = $db->getOngoingLabTestsByUser($user_id);
+        $labTestList = array();
+        if ($lab_tests->num_rows > 0) {
+            while ($row = $lab_tests->fetch_assoc()) {
+                $labTestList[] = $row;
+                $response['labTestList'] = $labTestList;
+            }
+        } else {
+            $response['labTestList'] = [];
         }
     } 
 
