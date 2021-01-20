@@ -74,6 +74,17 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
         } else {
             $response['labTestList'] = [];
         }
+    } elseif ($list_type == 'completed_lab_tests') {
+        $completed_lab_tests = $db->getCompletedLabTestsByUser($user_id);
+        $completedLabTestList = array();
+        if ($completed_lab_tests->num_rows > 0) {
+            while ($row = $completed_lab_tests->fetch_assoc()) {
+                $completedLabTestList[] = $row;
+                $response['completedLabTestList'] = $completedLabTestList;
+            }
+        } else {
+            $response['completedLabTestList'] = [];
+        }
     } 
 
 } else {
