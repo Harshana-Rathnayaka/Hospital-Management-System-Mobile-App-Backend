@@ -142,7 +142,7 @@ class DbOperations
     // getting the appointments table to the user
     public function getAppointments($user_id)
     {
-        $stmt = $this->con->prepare("SELECT a.appointment_id, a.patient_id, a.doctor_id, a.description, a.date, a.time, a.appointment_status, a.comments, p.full_name  FROM appointments a JOIN users p ON p.user_id = a.doctor_id WHERE a.patient_id = ? ORDER BY a.appointment_id DESC ");
+        $stmt = $this->con->prepare("SELECT a.appointment_id, a.patient_id, a.doctor_id, a.description, a.date, a.time, a.appointment_status, a.comments, p.full_name  FROM appointments a JOIN users p ON p.user_id = a.doctor_id WHERE a.patient_id = ? AND a.appointment_status = 'PENDING' || a.appointment_status = 'ACCEPTED' || a.appointment_status = 'PAID' ORDER BY a.appointment_id DESC ");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         return $stmt->get_result();
@@ -163,7 +163,6 @@ class DbOperations
     public function getAppointmentHistory($user_id)
     {
         $stmt = $this->con->prepare("SELECT a.appointment_id, a.patient_id, a.doctor_id, a.description, a.date, a.time, a.appointment_status, a.comments, p.full_name  FROM appointments a JOIN users p ON p.user_id = a.doctor_id WHERE a.patient_id = ? AND a.appointment_status = 'REJECTED' || a.appointment_status = 'COMPLETED' || a.appointment_status = 'CANCELLED' ORDER BY a.appointment_id ASC ");
-        $stmt = $this->con->prepare("SELECT * FROM `appointments` INNER JOIN `users` ON users.user_id = appointments.doctor_id WHERE `patient_id` = ? AND `appointment_status` = 'REJECTED' || `appointment_status` = 'COMPLETED' || `appointment_status` = 'CANCELLED'");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         return $stmt->get_result();
