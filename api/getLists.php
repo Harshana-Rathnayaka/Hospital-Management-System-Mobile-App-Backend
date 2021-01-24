@@ -64,6 +64,8 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             $response['payableList'] = [];
         }
     } elseif ($list_type == 'ongoing_lab_tests') {
+
+        // ongoing lab tests
         $lab_tests = $db->getOngoingLabTestsByUser($user_id);
         $labTestList = array();
         if ($lab_tests->num_rows > 0) {
@@ -75,6 +77,8 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             $response['labTestList'] = [];
         }
     } elseif ($list_type == 'completed_lab_tests') {
+
+        // completed lab tests
         $completed_lab_tests = $db->getCompletedLabTestsByUser($user_id);
         $completedLabTestList = array();
         if ($completed_lab_tests->num_rows > 0) {
@@ -84,6 +88,19 @@ if (isset($_POST['user_id']) && isset($_POST['list_type'])) {
             }
         } else {
             $response['completedLabTestList'] = [];
+        }
+    } elseif ($list_type == 'history') {
+
+        // appointments history
+        $history = $db->getAppointmentHistory($user_id);
+        $historyList = array();
+        if ($history->num_rows > 0) {
+            while ($row = $history->fetch_assoc()) {
+                $historyList[] = $row;
+                $response['historyList'] = $historyList;
+            }
+        } else {
+            $response['historyList'] = [];
         }
     } 
 
